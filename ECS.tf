@@ -9,6 +9,7 @@ resource "aws_ecs_task_definition" "example" {
   network_mode = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu = "256"
+  execution_role_arn = module.ecs_task_execution_role.iam_role_arn
 }
 
 resource "aws_ecs_service" "example" {
@@ -40,12 +41,23 @@ resource "aws_ecs_service" "example" {
   }
 }
 
-module "nginx_sg" {
-  source = "./security_group"
-  name = "nginx-sg"
-  vpc_id = aws_vpc.example.id
-  port = 80
-  cidr_blocks = [aws_vpc.example.cidr_block]
+data "aws_iam_policy" "ecs_task_execution_role_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-
+data "aws_iam_policy_document" "ecs_task_execution" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameters",
+      "kms:Decrypt",
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["*"]
+  }
+}
