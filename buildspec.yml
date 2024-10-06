@@ -6,9 +6,9 @@ phases:
       docker: 18
   pre_build:
     commands:
-      - $(aws ecr get-login-password --region $AWS_DEFAULT_REGION  | docker login --username AWS --password-stdin $REPO)
       - REPO=$(aws ecr describe-repositories --repository-names example --output text --query "repositories[0].repositoryUri")
       - IMAGE=$REPO:latest
+      - $(aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPO)
   build:
     commands:
       - docker build -t $IMAGE .
@@ -17,4 +17,5 @@ phases:
     commands:
       - printf '[{"name":"example","imageUri":"%s"}]' $IMAGE > imagedefinitions.json
 artifacts:
-  files: imagedefinitions.json
+  files:
+    - imagedefinitions.json
