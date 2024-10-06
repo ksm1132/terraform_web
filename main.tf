@@ -87,3 +87,33 @@ data "aws_iam_policy" "ecs_events_role_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceEventsRole"
 }
 
+
+module "codebuild_role" {
+  source = "./iam_role"
+  name = "codebuild"
+  identifier = "codebuild.amazonaws.com"
+  policy = data.aws_iam_policy_document.codebuild.json
+}
+
+module "codepipeline_role" {
+  source = "./iam_role"
+  name = "codepipeline"
+  identifier = "codepipeline.amazonaws.com"
+  policy = data.aws_iam_policy_document.codepipeline.json
+}
+
+resource "aws_s3_bucket" "artifact" {
+  bucket = "artifact-pragmatic-terraform-mkasa"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "artifact" {
+  bucket = aws_s3_bucket.artifact.id
+  rule {
+    id     = "artifact"
+    status = "Enabled"
+    expiration {
+      days = 180
+    }
+  }
+}
+

@@ -16,3 +16,4 @@ resource "aws_ssm_parameter" "db_raw_password" {
   }
 }
 
+
