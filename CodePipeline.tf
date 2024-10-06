@@ -1,4 +1,11 @@
-variable "github_token" {}
+# variable "github_token" {}
+
+resource "aws_codestarconnections_connection" "example" {
+  name          = "github-connection"
+  provider_type = "GitHub"
+}
+
+
 
 resource "aws_codepipeline" "example" {
   name     = "example"
@@ -11,7 +18,7 @@ resource "aws_codepipeline" "example" {
       category = "Source"
       name     = "Source"
       owner    = "ThirdParty"
-      provider = "GitHub"
+      provider = "CodeStarSourceConnection"
       version  = 1
       output_artifacts = ["Source"]
 
@@ -19,8 +26,12 @@ resource "aws_codepipeline" "example" {
         Owner = "ksm1132"
         Repo = "terraform_web"
         Branch = "master"
+        ConnectionArn = aws_codestarconnections_connection.example.arn
+        FullRepositoryId = "ksm1132/terraform_web"
         PollForSourceChanges = false
-        OAuthToken           = var.github_token
+        OutputArtifactFormat = "CODEBUILD_CLONE_REF"
+#         OAuthToken           = var.github_token
+
       }
     }
   }
@@ -80,7 +91,7 @@ resource "aws_codepipeline_webhook" "example" {
 
   filter {
     json_path    = "$.rel"
-    match_equals = "refs/heads/{Branch}"
+    match_equals = "refs/heads/master"
   }
 }
 
